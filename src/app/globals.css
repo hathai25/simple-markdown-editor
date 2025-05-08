@@ -1,26 +1,138 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* 
+  The :root variables for --background and --foreground 
+  and the @media (prefers-color-scheme: dark) block 
+  are no longer needed as Tailwind's dark mode: 'class' 
+  and the ThemeSwitcher component handle this directly.
+*/
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-gray-100 text-gray-800;
+  /* Base font can be set in tailwind.config.js or here */
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+/* Styles for .prose are handled by @tailwindcss/typography */
+/* Custom overrides can be added here if absolutely necessary, but try to rely on prose defaults */
+
+/* Example of a prose override, if needed:
+.prose h2 {
+  @apply mt-8 mb-4 text-2xl font-semibold tracking-tight;
+}
+*/
+
+/* Custom styling for inline code not in pre blocks, if prose defaults aren't sufficient */
+.prose :where(code):not(:where(pre *)) {
+  @apply bg-gray-200 px-1.5 py-0.5 rounded-md text-sm font-normal;
+}
+
+/* Custom styling for pre blocks, if prose defaults aren't sufficient */
+.prose :where(pre) {
+  @apply bg-gray-100 p-4 rounded-md overflow-x-auto mb-4;
+}
+
+/* Custom scrollbar styling (optional, for aesthetics) */
+/* For Webkit browsers */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent; /* Make track transparent */
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded-full hover:bg-gray-500;
+}
+
+/* Basic styles for manually styled markdown content */
+.markdown-content h1 {
+  @apply text-3xl font-bold mt-6 mb-4 pb-2 border-b border-gray-300;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-semibold mt-5 mb-3 pb-1 border-b border-gray-300;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-semibold mt-4 mb-2;
+}
+
+.markdown-content h4 {
+  @apply text-lg font-semibold mt-3 mb-1;
+}
+
+.markdown-content h5 {
+  @apply text-base font-semibold;
+}
+
+.markdown-content h6 {
+  @apply text-sm font-semibold text-gray-600;
+}
+
+.markdown-content p {
+  @apply mb-4 leading-relaxed;
+}
+
+.markdown-content ul {
+  @apply mb-4 pl-6 list-disc;
+}
+
+.markdown-content ol {
+  @apply mb-4 pl-6 list-decimal;
+}
+
+.markdown-content li {
+  @apply mb-1;
+}
+
+.markdown-content li > p {
+  @apply mb-1 inline-block; /* Fix for potential nested p margins */
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-4 py-2;
+}
+
+.markdown-content pre {
+  @apply bg-gray-100 p-4 rounded-md overflow-x-auto mb-4 text-sm;
+}
+
+.markdown-content code {
+  /* For inline code */
+  @apply bg-gray-200 px-1.5 py-0.5 rounded-md font-mono text-sm;
+}
+
+.markdown-content pre code {
+  /* Reset styles for code inside pre, as pre handles background */
+  @apply bg-transparent p-0 font-mono text-sm;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse border border-gray-300 mb-4 text-sm;
+}
+
+.markdown-content th,
+.markdown-content td {
+  @apply border border-gray-300 px-3 py-2 text-left;
+}
+
+.markdown-content th {
+  @apply bg-gray-100 font-semibold;
+}
+
+.markdown-content img {
+  @apply max-w-full h-auto rounded-md my-4 shadow-sm;
+}
+
+.markdown-content a {
+  @apply text-blue-600 hover:underline;
+}
+
+.markdown-content hr {
+  @apply my-6 border-gray-300;
 }
