@@ -136,3 +136,15 @@ body {
 .markdown-content hr {
   @apply my-6 border-gray-300;
 }
+
+/* For Webkit/Blink browsers */
+::selection {
+  @apply bg-blue-500 text-white;
+}
+
+/* For Firefox */
+::-moz-selection {
+  @apply bg-blue-500 text-white;
+}
+
+/* Further customizations can go here */
