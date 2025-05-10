@@ -1,5 +1,5 @@
 import React from 'react';
-import { /* Edit3, */ Trash2 } from 'lucide-react';
+import { /* Edit3, */ Edit3, Trash2 } from 'lucide-react';
 import { Draft } from '@/store/useMarkdownStore';
 import Button from './Button';
 
@@ -14,8 +14,8 @@ interface DraftActionsProps {
 export default function DraftActions({ draft, isActive, onRename, onDelete, className }: DraftActionsProps) {
   return (
     <div className={`flex items-center space-x-1 ${className || ''}`.trim()}>
-      {/* Rename button temporarily hidden
-      <Button
+      {/* temporarily hide rename button */}
+      {false &&<Button
         onClick={(e) => {
           e.stopPropagation();
           onRename(draft);
@@ -25,8 +25,8 @@ export default function DraftActions({ draft, isActive, onRename, onDelete, clas
         className={isActive ? 'text-blue-600' : 'text-slate-500 hover:text-blue-700'}
         title="Rename draft"
         icon={<Edit3 size={14} />}
-      />
-      */}
+      />}
+     
       <Button
         onClick={(e) => {
           e.stopPropagation();
