@@ -105,7 +105,7 @@ body {
 .markdown-content code {
   /* For inline code */
   @apply bg-gray-200 px-1.5 py-0.5 rounded-md font-mono text-sm;
-}
+  }
 
 .markdown-content pre code {
   /* Reset styles for code inside pre, as pre handles background */

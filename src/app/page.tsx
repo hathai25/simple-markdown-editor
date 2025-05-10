@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useMarkdownStore, getDraftTitle } from '@/store/useMarkdownStore';
-import { PlusCircle, BookOpen } from 'lucide-react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import DraftSidebar from '@/components/DraftSidebar';
+import EditorPane from '@/components/EditorPane';
+import PreviewPane from '@/components/PreviewPane';
+import Header from '@/components/Header';
+import EmptyState from '@/components/EmptyState';
 
 export default function HomePage() {
   const {
@@ -17,6 +22,9 @@ export default function HomePage() {
 
   const activeDraft = getActiveDraft();
   const [isMounted, setIsMounted] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement | null>(null);
+  const [shareLinkStatus, setShareLinkStatus] = useState<null | 'copied' | 'failed'>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -36,101 +44,197 @@ export default function HomePage() {
     }
   }, [activeDraft?.content, activeDraft?.id, activeDraft?.title, updateActiveDraftTitle]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleMarkdownChange = (newContent: string) => {
     updateActiveDraftContent(newContent);
   };
 
+  const handleExportMarkdown = () => {
+    if (!activeDraft) return;
+
+    const filename = `${activeDraft.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'untitled'}.md`;
+    const blob = new Blob([activeDraft.content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setIsExportMenuOpen(false);
+  };
+
+  const handleExportHtml = () => {
+    if (!activeDraft) return;
+
+    const htmlContent = renderToStaticMarkup(
+      React.createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, activeDraft.content || '')
+    );
+
+    const filename = `${activeDraft.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'untitled'}.html`;
+    const blob = new Blob([`<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${activeDraft.title}</title></head><body>${htmlContent}</body></html>`], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setIsExportMenuOpen(false);
+  };
+
+  const handleCopyRichText = async () => {
+    if (!activeDraft) return;
+
+    const htmlContent = renderToStaticMarkup(
+      React.createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, activeDraft.content || '')
+    );
+
+    try {
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({ 'text/html': blob });
+      await navigator.clipboard.write([clipboardItem]);
+      console.log('Rich text copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy rich text: ', err);
+      try {
+        await navigator.clipboard.writeText(activeDraft.content);
+        console.log('Fallback: Plain text copied to clipboard.');
+      } catch (fallbackErr) {
+        console.error('Fallback failed: ', fallbackErr);
+        alert('Failed to copy text. Your browser might not support this feature or permissions might be denied.');
+      }
+    }
+    setIsExportMenuOpen(false);
+  };
+
+  const handleShareViaLink = async () => {
+    if (!activeDraft || !activeDraft.content.trim()) {
+      alert('Cannot share an empty draft.');
+      setIsExportMenuOpen(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: activeDraft.content }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || `Failed to create share: ${response.statusText}`);
+      }
+
+      const { id } = await response.json();
+      const shareUrl = `${window.location.origin}/view/${id}`;
+
+      await navigator.clipboard.writeText(shareUrl);
+      setShareLinkStatus('copied');
+
+    } catch (error) {
+      console.error('Error sharing link:', error);
+      setShareLinkStatus('failed');
+    } finally {
+      setTimeout(() => {
+        setShareLinkStatus(null);
+        setIsExportMenuOpen(false);
+      }, 2000);
+    }
+  };
+
   if (!isMounted) {
-    // Skeleton loader using slate colors
     return (
-      <div className="flex h-screen bg-slate-100">
-        <div className="w-72 h-full bg-slate-200 border-r border-slate-300 flex flex-col flex-shrink-0 animate-pulse">
-            <div className="p-3 border-b border-slate-300 h-[57px] flex items-center">
-                <div className="h-4 bg-slate-300 rounded w-1/2"></div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
-                {[...Array(8)].map((_, i) => (
-                    <div key={i} className="h-8 bg-slate-300 rounded-md"></div>
-                ))}
-            </div>
-            <div className="p-2 border-t border-slate-300 h-[37px] flex items-center justify-center">
-                <div className="h-3 bg-slate-300 rounded w-1/3"></div>
-            </div>
+      <div className="flex h-screen bg-background-light">
+        <div className="w-72 h-full bg-background-dark border-r border-slate-300 flex flex-col flex-shrink-0 animate-pulse">
+          <div className="p-3 border-b border-slate-300 h-[57px] flex items-center">
+            <div className="h-4 bg-secondary-light rounded w-1/2"></div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-8 bg-secondary-light rounded-md"></div>
+            ))}
+          </div>
+          <div className="p-2 border-t border-slate-300 h-[37px] flex items-center justify-center">
+            <div className="h-3 bg-secondary-light rounded w-1/3"></div>
+          </div>
         </div>
         <main className="flex-1 flex flex-col overflow-hidden animate-pulse">
-            <div className="p-3 border-b bg-white border-slate-200 h-[57px] flex justify-start items-center">
-                <div className="h-5 bg-slate-300 rounded w-1/3"></div>
+          <div className="p-3 border-b bg-surface border-slate-200 h-[57px] flex justify-start items-center">
+            <div className="h-5 bg-secondary-light rounded w-1/3"></div>
+          </div>
+          <div className="flex flex-1 overflow-hidden bg-background p-3 sm:p-4 gap-3 sm:gap-4">
+            <div className="w-1/2 h-full bg-surface rounded-md border border-slate-300 shadow-sm p-6">
+              <div className="space-y-4">
+                <div className="h-4 bg-secondary-light rounded w-3/4"></div>
+                <div className="h-4 bg-secondary-light rounded w-full"></div>
+                <div className="h-4 bg-secondary-light rounded w-5/6"></div>
+              </div>
             </div>
-            <div className="flex flex-1 overflow-hidden bg-slate-50 p-3 sm:p-4 gap-3 sm:gap-4">
-                <div className="w-1/2 h-full bg-white rounded-md border border-slate-300 shadow-sm p-6">
-                    <div className="space-y-4">
-                        <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                        <div className="h-4 bg-slate-200 rounded w-full"></div>
-                        <div className="h-4 bg-slate-200 rounded w-5/6"></div>
-                    </div>
-                </div>
-                <div className="w-1/2 h-full bg-white rounded-md border border-slate-300 shadow-sm p-6">
-                    <div className="space-y-4">
-                        <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                        <div className="h-4 bg-slate-200 rounded w-full"></div>
-                        <div className="h-4 bg-slate-200 rounded w-5/6"></div>
-                    </div>
-                </div>
+            <div className="w-1/2 h-full bg-surface rounded-md border border-slate-300 shadow-sm p-6">
+              <div className="space-y-4">
+                <div className="h-4 bg-secondary-light rounded w-3/4"></div>
+                <div className="h-4 bg-secondary-light rounded w-full"></div>
+                <div className="h-4 bg-secondary-light rounded w-5/6"></div>
+              </div>
             </div>
+          </div>
         </main>
       </div>
     );
   }
-  
+
   return (
-    // Use slate-100 for the outermost background
-    <div className="flex h-screen bg-slate-100 text-slate-700 selection:bg-blue-500 selection:text-white">
+    <div className="flex h-screen bg-background-light text-text selection:bg-primary selection:text-white">
       <DraftSidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         {!activeDraft ? (
-          // Use slate-50 for the empty state background, matching editor area bg
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-slate-50">
-            <BookOpen size={40} className="text-slate-400 mb-4" />
-            <h2 className="text-lg font-medium text-slate-600 mb-1">No Draft Selected</h2>
-            <p className="text-sm text-slate-500 mb-6 max-w-xs">
-              Select a draft from the sidebar to begin, or create a new one.
-            </p>
-            <button 
-                onClick={createDraft}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 flex items-center transition-colors duration-150 text-sm font-medium"
-            >
-                <PlusCircle size={16} className="mr-1.5" /> Create New Draft
-            </button>
-          </div>
+          <EmptyState onCreateDraft={createDraft} />
         ) : (
           <>
-            {/* Header remains white */}
-            <header className="p-3 border-b border-slate-200 bg-white flex justify-start items-center flex-shrink-0 h-[57px]">
-              <h1 className="text-sm font-semibold text-slate-700 truncate pl-1" title={activeDraft.title}>
-                {activeDraft.title}
-              </h1>
-            </header>
-            {/* Editor/Preview container area uses slate-50 */}
-            <div className="flex flex-1 overflow-hidden bg-slate-50 p-2 sm:p-3 gap-2 sm:gap-3">
-              {/* Editor pane is white */}
-              <div className="w-1/2 h-full flex flex-col bg-white rounded-md border border-slate-200 shadow-sm focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400 transition-shadow duration-150">
-                <textarea
-                  value={activeDraft.content}
-                  onChange={(e) => handleMarkdownChange(e.target.value)}
-                  className="w-full h-full p-4 sm:p-5 bg-transparent resize-none focus:outline-none font-mono text-xs sm:text-sm leading-relaxed text-slate-800 placeholder-slate-400 tracking-tight"
-                  placeholder="# Start typing your markdown here..."
-                  key={activeDraft.id}
-                  spellCheck="false"
-                />
-              </div>
-              {/* Preview pane is white */}
-              <div className="w-1/2 h-full overflow-y-auto bg-white rounded-md border border-slate-200 shadow-sm p-4 sm:p-5">
-                <article className="markdown-content lg:prose-xl max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {activeDraft.content || ''}
-                  </ReactMarkdown>
-                </article>
-              </div>
+            <Header
+              title={activeDraft.title}
+              isExportMenuOpen={isExportMenuOpen}
+              onExportMenuToggle={() => setIsExportMenuOpen(!isExportMenuOpen)}
+              onExportMarkdown={handleExportMarkdown}
+              onExportHtml={handleExportHtml}
+              onCopyRichText={handleCopyRichText}
+              onShareViaLink={handleShareViaLink}
+              shareLinkStatus={shareLinkStatus}
+              exportMenuRef={exportMenuRef}
+            />
+            <div className="flex flex-1 overflow-hidden bg-background p-2 sm:p-3 gap-2 sm:gap-3">
+              <PanelGroup direction="horizontal">
+                <Panel defaultSize={50} minSize={30}>
+                  <EditorPane
+                    content={activeDraft.content}
+                    onChange={handleMarkdownChange}
+                    draftId={activeDraft.id}
+                  />
+                </Panel>
+
+                <PanelResizeHandle className="w-2 bg-background-light hover:bg-background-dark transition-colors duration-150 rounded-sm" />
+
+                <Panel defaultSize={50} minSize={30}>
+                  <PreviewPane content={activeDraft.content} />
+                </Panel>
+              </PanelGroup>
             </div>
           </>
         )}
