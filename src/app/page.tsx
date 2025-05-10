@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -22,8 +22,6 @@ export default function HomePage() {
 
   const activeDraft = getActiveDraft();
   const [isMounted, setIsMounted] = useState(false);
-  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
-  const exportMenuRef = useRef<HTMLDivElement | null>(null);
   const [shareLinkStatus, setShareLinkStatus] = useState<null | 'copied' | 'failed'>(null);
 
   useEffect(() => {
@@ -44,18 +42,6 @@ export default function HomePage() {
     }
   }, [activeDraft?.content, activeDraft?.id, activeDraft?.title, updateActiveDraftTitle]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
-        setIsExportMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   const handleMarkdownChange = (newContent: string) => {
     updateActiveDraftContent(newContent);
   };
@@ -73,7 +59,6 @@ export default function HomePage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setIsExportMenuOpen(false);
   };
 
   const handleExportHtml = () => {
@@ -93,7 +78,6 @@ export default function HomePage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setIsExportMenuOpen(false);
   };
 
   const handleCopyRichText = async () => {
@@ -118,13 +102,11 @@ export default function HomePage() {
         alert('Failed to copy text. Your browser might not support this feature or permissions might be denied.');
       }
     }
-    setIsExportMenuOpen(false);
   };
 
   const handleShareViaLink = async () => {
     if (!activeDraft || !activeDraft.content.trim()) {
       alert('Cannot share an empty draft.');
-      setIsExportMenuOpen(false);
       return;
     }
 
@@ -151,11 +133,6 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error sharing link:', error);
       setShareLinkStatus('failed');
-    } finally {
-      setTimeout(() => {
-        setShareLinkStatus(null);
-        setIsExportMenuOpen(false);
-      }, 2000);
     }
   };
 
@@ -201,7 +178,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex h-screen bg-background-light text-text selection:bg-primary selection:text-white">
+    <div className="flex h-screen selection:bg-primary selection:text-white">
       <DraftSidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         {!activeDraft ? (
@@ -210,14 +187,11 @@ export default function HomePage() {
           <>
             <Header
               title={activeDraft.title}
-              isExportMenuOpen={isExportMenuOpen}
-              onExportMenuToggle={() => setIsExportMenuOpen(!isExportMenuOpen)}
               onExportMarkdown={handleExportMarkdown}
               onExportHtml={handleExportHtml}
               onCopyRichText={handleCopyRichText}
               onShareViaLink={handleShareViaLink}
               shareLinkStatus={shareLinkStatus}
-              exportMenuRef={exportMenuRef}
             />
             <div className="flex flex-1 overflow-hidden bg-background p-2 sm:p-3 gap-2 sm:gap-3">
               <PanelGroup direction="horizontal">

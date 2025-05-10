@@ -1,89 +1,74 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 
-  The :root variables for --background and --foreground 
-  and the @media (prefers-color-scheme: dark) block 
-  are no longer needed as Tailwind's dark mode: 'class' 
-  and the ThemeSwitcher component handle this directly.
-*/
-
 body {
-  @apply bg-gray-100 text-gray-800;
   /* Base font can be set in tailwind.config.js or here */
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-/* Styles for .prose are handled by @tailwindcss/typography */
-/* Custom overrides can be added here if absolutely necessary, but try to rely on prose defaults */
-
-/* Example of a prose override, if needed:
-.prose h2 {
-  @apply mt-8 mb-4 text-2xl font-semibold tracking-tight;
-}
-*/
-
-/* Custom styling for inline code not in pre blocks, if prose defaults aren't sufficient */
-.prose :where(code):not(:where(pre *)) {
-  @apply bg-gray-200 px-1.5 py-0.5 rounded-md text-sm font-normal;
-}
-
-/* Custom styling for pre blocks, if prose defaults aren't sufficient */
-.prose :where(pre) {
-  @apply bg-gray-100 p-4 rounded-md overflow-x-auto mb-4;
-}
-
 /* Custom scrollbar styling (optional, for aesthetics) */
-/* For Webkit browsers */
 ::-webkit-scrollbar {
   @apply w-2 h-2;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent; /* Make track transparent */
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 rounded-full hover:bg-gray-500;
+  @apply bg-border rounded-full hover:bg-border/80;
 }
 
-/* Basic styles for manually styled markdown content */
+/* Styles for .prose are handled by @tailwindcss/typography */
+/* The dark:prose-invert class should be used on the article/div tag */
+
+/* Custom styling for inline code not in pre blocks, if prose defaults aren't sufficient */
+.prose :where(code):not(:where(pre *)) {
+  @apply bg-muted px-1.5 py-0.5 rounded-md text-sm font-normal text-foreground;
+}
+
+/* Custom styling for pre blocks, if prose defaults aren't sufficient */
+.prose :where(pre) {
+  @apply bg-muted p-4 rounded-md overflow-x-auto mb-4;
+}
+
+
+/* Basic styles for manually styled markdown content (fallback if not using .prose) */
 .markdown-content h1 {
-  @apply text-3xl font-bold mt-6 mb-4 pb-2 border-b border-gray-300;
+  @apply text-3xl font-bold mt-6 mb-4 pb-2 border-b border-border;
 }
 
 .markdown-content h2 {
-  @apply text-2xl font-semibold mt-5 mb-3 pb-1 border-b border-gray-300;
+  @apply text-2xl font-semibold mt-5 mb-3 pb-1 border-b border-border;
 }
 
 .markdown-content h3 {
-  @apply text-xl font-semibold mt-4 mb-2;
+  @apply text-xl font-semibold mt-4 mb-2 text-foreground;
 }
 
 .markdown-content h4 {
-  @apply text-lg font-semibold mt-3 mb-1;
+  @apply text-lg font-semibold mt-3 mb-1 text-foreground;
 }
 
 .markdown-content h5 {
-  @apply text-base font-semibold;
+  @apply text-base font-semibold text-foreground;
 }
 
 .markdown-content h6 {
-  @apply text-sm font-semibold text-gray-600;
+  @apply text-sm font-semibold text-muted-foreground;
 }
 
 .markdown-content p {
-  @apply mb-4 leading-relaxed;
+  @apply mb-4 leading-relaxed text-foreground;
 }
 
-.markdown-content ul {
-  @apply mb-4 pl-6 list-disc;
-}
-
+.markdown-content ul,
 .markdown-content ol {
-  @apply mb-4 pl-6 list-decimal;
+  @apply mb-4 pl-6 text-foreground;
 }
 
 .markdown-content li {
@@ -91,38 +76,37 @@ body {
 }
 
 .markdown-content li > p {
-  @apply mb-1 inline-block; /* Fix for potential nested p margins */
+  @apply mb-1 inline-block;
 }
 
 .markdown-content blockquote {
-  @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-4 py-2;
+  @apply border-l-4 border-border pl-4 italic text-muted-foreground mb-4 py-2;
 }
 
 .markdown-content pre {
-  @apply bg-gray-100 p-4 rounded-md overflow-x-auto mb-4 text-sm;
+  @apply bg-muted p-4 rounded-md overflow-x-auto mb-4 text-sm text-foreground;
 }
 
 .markdown-content code {
   /* For inline code */
-  @apply bg-gray-200 px-1.5 py-0.5 rounded-md font-mono text-sm;
-  }
+  @apply bg-muted px-1.5 py-0.5 rounded-md font-mono text-sm text-foreground;
+}
 
 .markdown-content pre code {
-  /* Reset styles for code inside pre, as pre handles background */
-  @apply bg-transparent p-0 font-mono text-sm;
+  @apply bg-transparent p-0;
 }
 
 .markdown-content table {
-  @apply w-full border-collapse border border-gray-300 mb-4 text-sm;
+  @apply w-full border-collapse border border-border mb-4 text-sm;
 }
 
 .markdown-content th,
 .markdown-content td {
-  @apply border border-gray-300 px-3 py-2 text-left;
+  @apply border border-border px-3 py-2 text-left text-foreground;
 }
 
 .markdown-content th {
-  @apply bg-gray-100 font-semibold;
+  @apply bg-muted font-semibold;
 }
 
 .markdown-content img {
@@ -130,21 +114,143 @@ body {
 }
 
 .markdown-content a {
-  @apply text-blue-600 hover:underline;
+  @apply text-primary hover:underline;
 }
 
 .markdown-content hr {
-  @apply my-6 border-gray-300;
+  @apply my-6 border-border;
 }
 
-/* For Webkit/Blink browsers */
 ::selection {
-  @apply bg-blue-500 text-white;
+  @apply bg-primary text-primary-foreground;
 }
 
-/* For Firefox */
 ::-moz-selection {
-  @apply bg-blue-500 text-white;
+  @apply bg-primary text-primary-foreground;
 }
 
-/* Further customizations can go here */
+@theme inline { 
+  /* ... existing @theme inline variables ... */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.94 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.3 0 0); /* Changed from oklch(1 0 0 / 10%) */
+  --input: oklch(0.3 0 0 / 50%); /* Adjusted from oklch(1 0 0 / 15%) for better visibility */
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.3 0 0 / 50%); /* Adjusted for visibility */
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* TEMPORARY DEBUG STYLE -- REMOVING
+.dark .debug-dark-header-bg {
+  background-color: lime !important;
+}
+*/

@@ -1,7 +1,7 @@
 import React from 'react';
-import { /* Edit3, */ Edit3, Trash2 } from 'lucide-react';
+import { Edit3, Trash2 } from 'lucide-react';
 import { Draft } from '@/store/useMarkdownStore';
-import Button from './Button';
+import { Button } from '@/components/ui/button';
 
 interface DraftActionsProps {
   draft: Draft;
@@ -15,29 +15,31 @@ export default function DraftActions({ draft, isActive, onRename, onDelete, clas
   return (
     <div className={`flex items-center space-x-1 ${className || ''}`.trim()}>
       {/* temporarily hide rename button */}
-      {false &&<Button
-        onClick={(e) => {
+      {false && <Button
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation();
           onRename(draft);
         }}
         variant="ghost"
-        size="xs"
-        className={isActive ? 'text-blue-600' : 'text-slate-500 hover:text-blue-700'}
+        size="icon"
+        className={`${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary-hover'} h-6 w-6`}
         title="Rename draft"
-        icon={<Edit3 size={14} />}
-      />}
+      >
+        <Edit3 size={14} />
+      </Button>}
      
       <Button
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation();
           onDelete(draft);
         }}
-        variant="danger-ghost"
-        size="xs"
-        className={isActive ? 'text-red-700' : ''}
+        variant="ghost"
+        size="icon"
+        className={`text-muted-foreground hover:text-destructive h-6 w-6`}
         title="Delete draft"
-        icon={<Trash2 size={14} />}
-      />
+      >
+        <Trash2 size={14} />
+      </Button>
     </div>
   );
 } 

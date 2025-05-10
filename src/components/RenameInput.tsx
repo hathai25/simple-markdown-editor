@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Check, X } from 'lucide-react';
-import Button from './Button';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface RenameInputProps {
   value: string;
@@ -35,38 +36,40 @@ export default function RenameInput({ value, onChange, onConfirm, onCancel, clas
 
   return (
     <div className={`flex-grow flex items-center gap-1 ${className || ''}`.trim()}>
-      <input 
+      <Input 
         ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onConfirm}
         onKeyDown={handleKeyDown}
-        className={`w-full px-2 py-1 text-xs text-slate-900 border border-blue-500 rounded-md focus:ring-1 focus:ring-blue-500 outline-none`}
+        className={`w-full px-2 py-1 text-xs text-foreground`}
         autoFocus
       />
       <Button 
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation();
           onConfirm();
         }} 
         variant="ghost"
-        size="xs"
-        className="text-green-600 hover:text-green-700"
+        size="icon"
+        className="text-success hover:text-success-hover h-6 w-6"
         title="Confirm rename"
-        icon={<Check size={14}/>}
-      />
+      >
+        <Check size={14}/>
+      </Button>
       <Button 
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation();
           onCancel();
         }} 
         variant="ghost"
-        size="xs"
-        className="text-red-500 hover:text-red-600"
+        size="icon"
+        className="text-destructive hover:text-destructive-hover h-6 w-6"
         title="Cancel rename"
-        icon={<X size={14}/>}
-      />
+      >
+        <X size={14}/>
+      </Button>
     </div>
   );
 } 
